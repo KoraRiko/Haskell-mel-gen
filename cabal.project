@@ -1,0 +1,5 @@
+packages:
+  .
+
+constraints:
+  Cabal < 1.25
