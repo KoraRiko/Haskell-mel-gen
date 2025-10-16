@@ -1,0 +1,6 @@
+resolver: lts-21.22
+packages:
+  - .
+extra-deps:
+  - Euterpea-2.0.7@sha256:fa8471fe67f0cf4cd7b54e4aa51a044923d9af03e80d019ba010656f84dde817,2683
+  - PortMidi-0.2.0.0@sha256:0671e36ec72e95138bf396234b205864a8a6d0ee353e09e01cbfd57004c56f40,2383
