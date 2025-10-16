@@ -93,7 +93,8 @@ if "%VMS_INSTALLED%"=="true" (
     pause
 )
 
-echo MIDI setup complete. If no sound, open VirtualMIDISynth and confirm SF2 is loaded.
+echo MIDI setup complete. If no sound, open VirtualMIDISynth. open SoundFonts tab. Press "+" and navigate to the folder where this program is stored.
+echo  Open SoundFonts folder then open GeneralUser-GS folder and press to the file named GeneralUser-GS.sf2. Press button "open". And button "ok". All done
 
 REM Update snapshots, setup GHC, and build Haskell project
 echo Building Haskell project...
