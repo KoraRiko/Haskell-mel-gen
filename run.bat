@@ -82,7 +82,8 @@ if "%VMS_INSTALLED%"=="true" (
     reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "PreloadSoundfont" /t REG_DWORD /d 1 /f >nul 2>nul
     reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Multimedia\MIDIMap" /v "Default" /t REG_SZ /d "VirtualMIDISynth" /f >nul 2>nul
     if errorlevel 1 (
-        echo Warning: Failed to configure VirtualMIDISynth registry. Please configure manually.
+        echo Warning: Failed to configure VirtualMIDISynth registry. Please configure manually.Open VirtualMIDISynth, open SoundFonds tab. Press "+" and navigate to the folder where this program is stored.
+        echo  Open SoundFonts foulder then open GeneralUser-GS foulder and press to the file named GeneralUser-GS.sf2. Press button "open". And button "ok". All done
         pause
     ) else (
         echo VMS configuration updated.
