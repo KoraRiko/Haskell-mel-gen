@@ -42,6 +42,7 @@ library
 executable Haskell-mel-gen-exe
   main-is: Main.hs
   other-modules:
+      MelodyGenerator
       Paths_Haskell_mel_gen
   autogen-modules:
       Paths_Haskell_mel_gen
