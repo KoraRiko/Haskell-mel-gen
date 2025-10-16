@@ -2,51 +2,95 @@
 echo Starting Haskell Melody Generator...
 
 REM Check if Stack is installed; if not, install it
+echo Checking for Stack...
 where stack >nul 2>nul
 if %errorlevel% neq 0 (
     echo Stack not found. Downloading and installing...
     powershell -Command "Invoke-WebRequest -Uri 'https://get.haskellstack.org/stable/windows-x86_64-installer.exe' -OutFile 'stack-installer.exe'; Start-Process 'stack-installer.exe' -ArgumentList '/S' -Wait; del stack-installer.exe"
-    set PATH=%PATH%;%APPDATA%\local\Programs\stack\x86_64-windows-ghc-9.4.8\bin
+    if errorlevel 1 (
+        echo Error: Failed to install Stack. Please install manually from https://get.haskellstack.org/ and run again.
+        pause
+        exit /b
+    )
+    set "PATH=%PATH%;%APPDATA%\local\Programs\stack\x86_64-windows-ghc-9.4.8\bin"
+) else (
+    echo Stack found. Continuing...
 )
 
 REM === Setup VirtualMIDISynth ===
 echo Setting up MIDI synthesizer (VirtualMIDISynth)...
+set "VMS_INSTALLED=false"
+
+REM Check for VMS in your installation path
+echo Checking C:\Program Files\VirtualMIDISynth...
+if exist "C:\Program Files\VirtualMIDISynth\VirtualMIDISynth.exe" (
+    set "VMS_INSTALLED=true"
+    echo VirtualMIDISynth found in C:\Program Files\VirtualMIDISynth.
+) else (
+    echo Not found in C:\Program Files\VirtualMIDISynth.
+)
+
+REM Check in PATH for VirtualMIDISynth.exe
+echo Checking PATH for VirtualMIDISynth.exe...
 where VirtualMIDISynth.exe >nul 2>nul
-if %errorlevel% neq 0 (
+if %errorlevel% == 0 (
+    set "VMS_INSTALLED=true"
+    echo VirtualMIDISynth.exe found in PATH.
+)
+
+if "%VMS_INSTALLED%"=="true" (
+    echo VirtualMIDISynth is already installed. Skipping installation...
+) else (
     echo VirtualMIDISynth not found. Downloading and installing...
-    powershell -Command "Invoke-WebRequest -Uri 'https://coolsoft.altervista.org/en/virtualmidisynth/files/VirtualMIDISynth.msi' -OutFile 'vms-installer.msi'; msiexec /i 'vms-installer.msi' /quiet /norestart; del vms-installer.msi"
-    echo Restart may be required after VMS installation. Please restart and run again.
+    powershell -Command "$url = 'https://coolsoft.altervista.org/en/virtualmidisynth/files/VirtualMIDISynth-2139-setup.exe'; try { Invoke-WebRequest -Uri $url -OutFile 'vms-installer.exe'; Start-Process 'vms-installer.exe' -ArgumentList '/S' -Wait; del 'vms-installer.exe' } catch { Write-Host 'Download failed (404 or other error). Please install manually from https://coolsoft.altervista.org/en/virtualmidisynth'; pause }"
+    if errorlevel 1 (
+        echo Installation failed. Please install VirtualMIDISynth manually from https://coolsoft.altervista.org/en/virtualmidisynth and run again.
+        pause
+        exit /b
+    )
+    echo Restart may be required after VMS installation. Please restart and run again if needed.
     pause
-    exit /b
 )
 
-REM Copy GeneralUser-GS.sf2 to C:\SoundFonts
-if not exist "C:\SoundFonts\GeneralUser-GS.sf2" (
-    echo Copying GeneralUser-GS.sf2 to C:\SoundFonts...
-    mkdir C:\SoundFonts >nul 2>nul
-    copy SoundFonts\GeneralUser-GS.sf2 C:\SoundFonts\GeneralUser-GS.sf2 >nul
+REM Configure VMS via registry to load GeneralUser-GS.sf2 (if VMS installed)
+if "%VMS_INSTALLED%"=="true" (
+    echo Configuring VirtualMIDISynth...
+    reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth\SoundFonts" /v "0" /t REG_SZ /d "C:\SoundFonts\GeneralUser-GS.sf2" /f >nul 2>nul
+    reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "EnableHardwareMixing" /t REG_DWORD /d 1 /f >nul 2>nul
+    reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "PreloadSoundfont" /t REG_DWORD /d 1 /f >nul 2>nul
+    reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Multimedia\MIDIMap" /v "Default" /t REG_SZ /d "VirtualMIDISynth" /f >nul 2>nul
+    if errorlevel 1 (
+        echo Warning: Failed to configure VirtualMIDISynth registry. Please configure manually.
+        pause
+    ) else (
+        echo VMS configuration updated.
+    )
+) else (
+    echo Warning: VirtualMIDISynth not installed. MIDI configuration skipped.
+    pause
 )
-
-REM Configure VMS via registry to load GeneralUser-GS.sf2
-reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth\SoundFonts" /v "0" /t REG_SZ /d "C:\SoundFonts\GeneralUser-GS.sf2" /f >nul 2>nul
-reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "EnableHardwareMixing" /t REG_DWORD /d 1 /f >nul 2>nul
-reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "PreloadSoundfont" /t REG_DWORD /d 1 /f >nul 2>nul
-
-REM Set VMS as default MIDI device
-reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Multimedia\MIDIMap" /v "szPname" /t REG_SZ /d "VirtualMIDISynth #1" /f >nul 2>nul
 
 echo MIDI setup complete. If no sound, open VirtualMIDISynth and confirm SF2 is loaded.
 
 REM Update snapshots, setup GHC, and build Haskell project
+echo Building Haskell project...
 stack update
 stack setup
 stack clean --full
 stack build
+if errorlevel 1 (
+    echo Build failed. Check errors above and resolve issues.
+    pause
+    exit /b
+)
 
 REM Run the program
-echo.
 echo Running with 5 notes...
 stack run -- generateMelody 5
-echo.
-echo Done! Press any key to exit.
-pause >nul
+if errorlevel 1 (
+    echo Run failed. Check errors above and resolve issues.
+    pause
+    exit /b
+)
+
+echo Done! Program completed successfully.
