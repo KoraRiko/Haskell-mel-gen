@@ -52,10 +52,32 @@ if "%VMS_INSTALLED%"=="true" (
     pause
 )
 
+REM Copy or verify GeneralUser-GS.sf2 to C:\SoundFonts\GeneralUser-GS
+echo Verifying GeneralUser-GS.sf2 in C:\SoundFonts\GeneralUser-GS...
+if not exist "C:\SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2" (
+    mkdir C:\SoundFonts\GeneralUser-GS >nul 2>nul
+    echo Checking for GeneralUser-GS.sf2 in project: SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2
+    if exist "SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2" (
+        copy "SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2" "C:\SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2" >nul
+        if errorlevel 1 (
+            echo Warning: Failed to copy GeneralUser-GS.sf2. Please copy manually to C:\SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2.
+            pause
+        ) else (
+            echo GeneralUser-GS.sf2 copied successfully.
+        )
+    ) else (
+        echo Warning: GeneralUser-GS.sf2 not found in SoundFonts\GeneralUser-GS folder. Please copy it to C:\SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2 or download from http://www.schristiancollins.com/generaluser.php.
+        pause
+        exit /b
+    )
+) else (
+    echo GeneralUser-GS.sf2 already exists in C:\SoundFonts\GeneralUser-GS.
+)
+
 REM Configure VMS via registry to load GeneralUser-GS.sf2 (if VMS installed)
 if "%VMS_INSTALLED%"=="true" (
     echo Configuring VirtualMIDISynth...
-    reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth\SoundFonts" /v "0" /t REG_SZ /d "C:\SoundFonts\GeneralUser-GS.sf2" /f >nul 2>nul
+    reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth\SoundFonts" /v "0" /t REG_SZ /d "C:\SoundFonts\GeneralUser-GS\GeneralUser-GS.sf2" /f >nul 2>nul
     reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "EnableHardwareMixing" /t REG_DWORD /d 1 /f >nul 2>nul
     reg add "HKEY_CURRENT_USER\Software\CoolSoft\VirtualMIDISynth" /v "PreloadSoundfont" /t REG_DWORD /d 1 /f >nul 2>nul
     reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Multimedia\MIDIMap" /v "Default" /t REG_SZ /d "VirtualMIDISynth" /f >nul 2>nul
@@ -84,9 +106,20 @@ if errorlevel 1 (
     exit /b
 )
 
-REM Run the program
-echo Running with 5 notes...
-stack run -- generateMelody 5
+REM Request number of notes from user
+
+echo ===============================================================================================================
+echo ===============================================Enter number====================================================
+echo ===============================================================================================================
+set /p number=Enter the number of notes (e.g., 5): 
+if "%number%"=="" (
+    echo Error: No input. Using default value. Will be played 5.
+    set "number=5"
+)
+
+REM Run the program with the specified number of notes
+echo Running with %number% notes...
+stack run -- generateMelody %number%
 if errorlevel 1 (
     echo Run failed. Check errors above and resolve issues.
     pause
@@ -94,3 +127,4 @@ if errorlevel 1 (
 )
 
 echo Done! Program completed successfully.
+pause
