@@ -42,9 +42,9 @@ if "%VMS_INSTALLED%"=="true" (
     echo VirtualMIDISynth is already installed. Skipping installation...
 ) else (
     echo VirtualMIDISynth not found. Downloading and installing...
-    powershell -Command "$url = 'https://coolsoft.altervista.org/en/virtualmidisynth/files/VirtualMIDISynth-2139-setup.exe'; try { Invoke-WebRequest -Uri $url -OutFile 'vms-installer.exe'; Start-Process 'vms-installer.exe' -ArgumentList '/S' -Wait; del 'vms-installer.exe' } catch { Write-Host 'Download failed (404 or other error). Please install manually from https://coolsoft.altervista.org/en/virtualmidisynth'; pause }"
+    powershell -Command "$url = 'https://coolsoft.altervista.org/download/CoolSoft_VirtualMIDISynth_2.13.9.exe?tckt=1760619573'; try { Invoke-WebRequest -Uri $url -OutFile 'vms-installer.exe'; Start-Process 'vms-installer.exe' -ArgumentList '/S' -Wait; del 'vms-installer.exe' } catch { Write-Host 'Download failed (404 or other error). Please install manually from https://coolsoft.altervista.org/en/virtualmidisynth'; pause }"
     if errorlevel 1 (
-        echo Installation failed. Please install VirtualMIDISynth manually from https://coolsoft.altervista.org/en/virtualmidisynth and run again.
+        echo Installation failed. Please install VirtualMIDISynth manually from https://coolsoft.altervista.org/en/download/CoolSoft_VirtualMIDISynth_2.13.9.exe and run again.
         pause
         exit /b
     )
